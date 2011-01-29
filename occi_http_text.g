@@ -1,9 +1,22 @@
 grammar occi_http_text;
 
-/*
-EBNF representation of category:
+tokens {
+	SCHEME_ATTR = 'scheme';
+	CLASS_ATTR = 'class';
+	TITLE_ATTR = 'title';
+	REL_ATTR = 'rel';
+	ATTRIBUTES_ATTR = 'attributes';
+	ACTIONS_ATTR = 'action';
+	LOCATION_ATTR = 'location';
+}
+// ---------------------------------------- 
+// ---------- Category attribute ---------- 
+// ---------------------------------------- 
 
-Category           = "Category" ":" #category-value
+/*
+EBNF representation of category from the http rendering specification
+
+  Category         = "Category" ":" #category-value
   category-value   = term
                     ";" "scheme" "=" <"> scheme <">
                     ";" "class" "=" ( class | <"> class <"> )
@@ -23,116 +36,148 @@ Category           = "Category" ":" #category-value
   action-list      = action
                    | action *( 1*SP action)
   action           = type-identifier
+
+Examples:
+
+	Category: storage;
+	    scheme="http://schemas.ogf.org/occi/infrastructure#";
+	    class="kind";
+	    title="Storage Resource";
+	    rel="http://schemas.ogf.org/occi/core#resource";
+	    location=/storage/;
+	    attributes="occi.storage.size occi.storage.state";
+	    actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize ...";
 */
 
-tokens {
-	SCHEME_ATTR = 'scheme';
-	CLASS_ATTR = 'class';
-	TITLE_ATTR = 'title';
-	REL_ATTR = 'rel';
-	ATTRIBUTES_ATTR = 'attributes';
-	ACTIONS_ATTR = 'action';
-	LOCATION_ATTR = 'location';
-}
-
 category: CATEGORY_HEADER category_value;
-category_value: term scheme class (title|rel|location|attributes|actions)?;
+category_value: term_attr scheme_attr class_attr (title_attr|rel_attr|location_attr|attributes_attr|actions_attr)?;
 
-term: term_value;
-term_value: (UPALPHA|LOWALPHA|NUM|'_'|'.'|'-')* WS?;
+term_attr: term_attr_value;
+term_attr_value: (UPALPHA|LOWALPHA|NUM|RESERVED)* WS?;
 
-scheme: ATTR_TERMINATOR WS? SCHEME_ATTR ASSIGNMENT scheme_value WS?;
-scheme_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+scheme_attr: ATTR_TERMINATOR WS? SCHEME_ATTR ASSIGNMENT scheme_attr_value WS?;
+scheme_attr_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
-class: ATTR_TERMINATOR WS? CLASS_ATTR ASSIGNMENT class_value WS?;
-class_value: QUOTE CLASS_ENUM QUOTE;
+class_attr: ATTR_TERMINATOR WS? CLASS_ATTR ASSIGNMENT class_attr_value WS?;
+class_attr_value: QUOTE CATEGORY_CLASS_ENUM QUOTE;
 
-title: ATTR_TERMINATOR WS? TITLE_ATTR ASSIGNMENT title_value WS?;
-title_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+title_attr: ATTR_TERMINATOR WS? TITLE_ATTR ASSIGNMENT title_attr_value WS?;
+title_attr_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
-rel: ATTR_TERMINATOR WS? REL_ATTR ASSIGNMENT rel_value WS?;
-rel_value:  QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+rel_attr: ATTR_TERMINATOR WS? REL_ATTR ASSIGNMENT rel_attr_value WS?;
+rel_attr_value:  QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
-location: ATTR_TERMINATOR WS? LOCATION_ATTR ASSIGNMENT location_value WS?;
-location_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+//TODO lexical rules
+location_attr: ATTR_TERMINATOR WS? LOCATION_ATTR ASSIGNMENT location_attr_value WS?;
+location_attr_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
-attributes: ATTR_TERMINATOR WS? ATTRIBUTES_ATTR ASSIGNMENT attributes_value WS?;
-attributes_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+//TODO lexical rules
+attributes_attr: ATTR_TERMINATOR WS? ATTRIBUTES_ATTR ASSIGNMENT attributes_attr_value WS?;
+attributes_attr_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
-actions: ATTR_TERMINATOR WS? ACTIONS_ATTR ASSIGNMENT actions_value WS?;
-actions_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
+//TODO lexical rules
+actions_attr: ATTR_TERMINATOR WS? ACTIONS_ATTR ASSIGNMENT actions_attr_value WS?;
+actions_attr_value: QUOTE (UPALPHA|LOWALPHA|NUM)* QUOTE;
 
 CATEGORY_HEADER : ('C'|'c')'ategory' WS? ':' WS?;
-CLASS_ENUM: ('action' | 'mixin' | 'kind');
+CATEGORY_CLASS_ENUM: ('action' | 'mixin' | 'kind');
 
+// ---------------------------------------- 
+// ------------ Link attribute ------------ 
+// ---------------------------------------- 
+/*
+
+EBNF representation of link from the http rendering specification
+
+  Link             = "Link" ":" #link-value
+  link-value       = "<" URI-Reference ">"
+                    ";" "rel" "=" <"> resource-type <">
+                    [ ";" "self" "=" <"> link-instance <"> ]
+                    [ ";" "category" "=" link-type ]
+                    *( ";" link-attribute )
+  term             = token
+  scheme           = URI
+  type-identifier  = scheme term
+  resource-type    = type-identifier *( 1*SP type-identifier )
+  link-type        = type-identifier *( 1*SP type-identifier )
+  link-instance    = URI-reference
+  link-attribute   = attribute-name "=" ( token | quoted-string )
+  attribute-name   = attr-component *( "." attr-component )
+  attr-component   = LOALPHA *( LOALPHA | DIGIT | "-" | "_" )
+
+Example:
+
+	Link: </network/123>;
+	    rel="http://schemas.ogf.org/occi/infrastructure#network";
+	    self="/link/networkinterface/456";
+	    category="http://schemas.ogf.org/occi/infrastructure#networkinterface";
+	    occi.networkinterface.interface="eth0";
+	    occi.networkinterface.mac="00:11:22:33:44:55";
+	    occi.networkinterface.state="active";
+
+or for instances:
+
+	Link: </compute/123?action=start>;
+    	rel="http://schemas.ogf.org/occi/infrastructure/compute/action#start"
+*/
+link: ;
+
+// ---------------------------------------- 
+// ------ X-OCCI-Attribute attribute ------
+// ---------------------------------------- 
+/*
+
+EBNF representation of X-OCCI-Attribute from the http rendering specification
+
+  Attribute        = "X-OCCI-Attribute" ":" #attribute-repr
+  attribute-repr   = attribute-name "=" ( token | quoted-string )
+  attribute-name   = attr-component *( "." attr-component )
+  attr-component   = LOALPHA *( LOALPHA | DIGIT | "-" | "_" )
+
+Example: 
+  X-OCCI-Attribute: occi.compute.architechture="x86_64"
+  X-OCCI-Attribute: occi.compute.architechture="x86_64", occi.compute.cores=2
+*/
+attribute: ATTRIBUTE_HEADER attribute_value;// (WS* ',' attribute_value)*;
+attribute_value: attribute_string_key attribute_string_value; //	| attribute_int_key ASSIGNMENT attribute_int_value
+
+attribute_string_key: ASSIGNMENT (UPALPHA|LOWALPHA|RESERVED|NUM)*;
+attribute_string_value: ASSIGNMENT WS* QUOTE (UPALPHA|LOWALPHA|RESERVED|NUM)* QUOTE;
+
+attribute_int_key: (UPALPHA|LOWALPHA|RESERVED|NUM)*;
+attribute_int_value: WS* NUM*;
+
+
+ATTRIBUTE_HEADER: 'X-OCCI-Attribute' WS? ':' WS?;
+// ---------------------------------------- 
+// ------ X-OCCI-Location attribute -------
+// ---------------------------------------- 
+/*
+
+EBNF representation of X-OCCI-Location from the http rendering specification
+
+  Location        = "X-OCCI-Location" ":" location-value
+  location-value  = URI-reference
+
+Examples:
+  X-OCCI-Location: http://example.com/compute/123
+  X-OCCI-Location: http://example.com/compute/123, http://example.com/compute/123
+*/
+location: LOCATION_HEADER location_value (WS* ',' location_value)*;
+location_value:  WS* (UPALPHA|LOWALPHA|RESERVED|NUM)*;
+
+LOCATION_HEADER: 'X-OCCI-Location' WS* ':';
+
+
+// ----------------------------------------
+// --------- Common Lexical Rules ---------
+// ----------------------------------------
 ATTR_TERMINATOR: ';';
-ASSIGNMENT: WS? '=' WS?;
+ASSIGNMENT: WS* '=' WS*;
 
-WS  :   ( ' ' | '\t') {$channel=HIDDEN;};
+WS:   ( ' ' | '\t') {$channel=HIDDEN;};
 QUOTE: '"';
 UPALPHA: 'A'..'Z';
 LOWALPHA: 'a'..'z';
 NUM: '0'..'9';
-
-//taken from: http://antlr.org/grammar/1240941192304/css21.g
-//fragment URL : ('['|'!'|'#'|'$'|'%'|'&'|'*'|'-'|'~' | NONASCII | ESCAPE)*;
-//fragment NONASCII : '\u0080'..'\uFFFF'; // NB: Upper bound should be \u4177777
-//fragment ESCAPE : UNICODE | '\\' ~('\r'|'\n'|'\f'|HEXCHAR)  ;
-//fragment UNICODE : '\\' HEXCHAR (HEXCHAR (HEXCHAR (HEXCHAR (HEXCHAR HEXCHAR?)?)?)?)?('\r'|'\n'|'\t'|'\f'|' ')*;
-//fragment HEXCHAR : ('a'..'f'|'A'..'F'|'0'..'9') ;
-
-/*
-tokens{
-	CATEGORY_HEADER='Category';
-	SCHEME = 'scheme';
-}
-
-root : CATEGORY_HEADER WS ':' category;
-
-category : term WS ';' WS SCHEME WS '=' WS scheme;
-
-term : STRING;
-
-scheme : STRING; //needs to be a URL
-
-
-
-
-
-
-WS  :   ( ' '
-        | '\t'
-        | '\r'
-        | '\n'
-        ) {$channel=HIDDEN;}
-    ;
-
-STRING
-    :  '"' ( ESC_SEQ | ~('\\'|'"') )* '"'
-    ;
-
-CHAR:  '\'' ( ESC_SEQ | ~('\''|'\\') ) '\''
-    ;
-
-fragment
-HEX_DIGIT : ('0'..'9'|'a'..'f'|'A'..'F') ;
-
-fragment
-ESC_SEQ
-    :   '\\' ('b'|'t'|'n'|'f'|'r'|'\"'|'\''|'\\')
-    |   UNICODE_ESC
-    |   OCTAL_ESC
-    ;
-
-fragment
-OCTAL_ESC
-    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-    |   '\\' ('0'..'7') ('0'..'7')
-    |   '\\' ('0'..'7')
-    ;
-
-fragment
-UNICODE_ESC
-    :   '\\' 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
-    ;
-*/
+RESERVED: ':' | '/' | '?' | '_' | '.' | '-';
