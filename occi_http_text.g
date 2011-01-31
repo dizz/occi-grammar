@@ -1,4 +1,4 @@
-grammar occi;
+grammar occi_http_text;
 
 options {
   language = Java;
