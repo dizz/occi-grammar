@@ -29,10 +29,11 @@ tokens{
 // ----------------------------------------
 
 occi_header:
-    category_header
+  ( category_header
   | link_header
   | attribute_header
   | location_header
+  )+
 ;
 
 // ----------------------------------------
@@ -73,11 +74,13 @@ Examples:
       attributes="occi.storage.size occi.storage.state";
       actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize ...";
 */
-
+//TODO allow for multiple categories per line seperated by ','
 category_header:
-  CATEGORY_HEADER term scheme class (title | rel | location | attributes)*
+  CATEGORY_HEADER category_header_val
 ;
-
+category_header_val:
+  term scheme class (title | rel | location | attributes)*
+;
 term:
   TOKEN
 ;
@@ -160,6 +163,7 @@ Link specification for links that call actions:
   action-uri       = URL "?" "action=" term
 */
 //TODO action links spec
+//TODO allow for multiple links per line seperated by ','
 link_header:
   LINK_HEADER  link_path rel (self | link_category)* attributes_attr?
 ;
@@ -261,4 +265,4 @@ CLASS: ('kind'|'mixin'|'action');
 URI: ('http://' | 'https://') TOKEN;
 TOKEN: ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z')*;
 DIGIT: '0'..'9'+;
-WS: (' ' | '\t'){$channel = HIDDEN};
+WS: (' ' | '\t' | '\n' | '\r'){$channel = HIDDEN};
