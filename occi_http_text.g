@@ -14,6 +14,7 @@ tokens{
   TITLE_ATTR = 'title';
   REL_ATTR = 'rel';
   LOCATION_ATTR = 'location';
+  ATTRIBUTES_ATTR = 'attributes';
   SELF_ATTR = 'self';
   CAT_ATTR = 'category';
   CAT_ATTR_SEP = ';';
@@ -23,10 +24,16 @@ tokens{
   CLOSE_PATH = '>';
 }
 
+occi_header:
+    category_header
+  | link_header
+  | attribute_header
+  | location_header
+;
 
-// ---------------------------------------- 
-// ---------- Category attribute ---------- 
-// ---------------------------------------- 
+// ----------------------------------------
+// ---------- Category attribute ----------
+// ----------------------------------------
 
 /*
 ABNF representation of category from the http rendering specification
@@ -65,7 +72,7 @@ Examples:
 */
 
 category_header:
-  CATEGORY_HEADER term scheme class (title | rel | location)*
+  CATEGORY_HEADER term scheme class (title | rel | location | attributes)*
 ;
 
 term:
@@ -75,7 +82,7 @@ term:
 scheme:
   CAT_ATTR_SEP SCHEME_ATTR VAL_ASSIGN QUOTE scheme_val QUOTE
 ;
-scheme_val: 
+scheme_val:
   URI
 ;
 
@@ -107,6 +114,13 @@ location_val:
   TOKEN
 ;
 
+attributes:
+  CAT_ATTR_SEP ATTRIBUTES_ATTR VAL_ASSIGN QUOTE attributes_names QUOTE
+;
+attributes_names:
+  attribute_attr_name (attribute_attr_name)*
+;
+
 link_header:
   LINK_HEADER  link_path rel (self | link_category)* attributes_attr?
 ;
@@ -115,7 +129,7 @@ link_path:
   OPEN_PATH link_path_val CLOSE_PATH
 ;
 link_path_val:
-  PATH 
+  PATH
 ;
 
 self:
@@ -133,10 +147,10 @@ link_category_val:
 ;
 
 attributes_attr:
-  attribute_attr+
+  (CAT_ATTR_SEP attribute_attr)+
 ;
 attribute_attr:
-  CAT_ATTR_SEP attribute_attr_name VAL_ASSIGN attribute_attr_val
+  attribute_attr_name VAL_ASSIGN attribute_attr_val
 ;
 attribute_attr_name:
   ATTRIB_NAME
@@ -152,9 +166,9 @@ attribute_attr_int_val:
 ;
 
 
-// ---------------------------------------- 
+// ----------------------------------------
 // ------ X-OCCI-Attribute attribute ------
-// ---------------------------------------- 
+// ----------------------------------------
 /*
 
 ABNF representation of X-OCCI-Attribute from the http rendering specification
@@ -164,19 +178,21 @@ ABNF representation of X-OCCI-Attribute from the http rendering specification
   attribute-name   = attr-component *( "." attr-component )
   attr-component   = LOALPHA *( LOALPHA | DIGIT | "-" | "_" )
 
-Example: 
+Example:
   X-OCCI-Attribute: occi.compute.architechture="x86_64"
   X-OCCI-Attribute: occi.compute.architechture="x86_64", occi.compute.cores=2
 */
 
 attribute_header:
-  ATTR_HEADER
+  ATTR_HEADER attribute_attrs
+;
+attribute_attrs:
+  attribute_attr (',' attribute_attr)*
 ;
 
-
-// ---------------------------------------- 
+// ----------------------------------------
 // ------ X-OCCI-Location attribute -------
-// ---------------------------------------- 
+// ----------------------------------------
 /*
 
 ABNF representation of X-OCCI-Location from the http rendering specification
@@ -190,13 +206,19 @@ Examples:
 */
 
 location_header:
-  LOCATION_HEADER
+  LOCATION_HEADER location_paths
+;
+location_paths:
+  location_path (',' location_path)*
+;
+location_path:
+  PATH
 ;
 
-ATTRIB_NAME: ('a'..'z' | 'A'..'Z')('a'..'z' | 'A'..'Z')+ ('.') TOKEN;
+ATTRIB_NAME: ('a'..'z' | 'A'..'Z')('a'..'z' | 'A'..'Z' | DIGIT)+ ('.') TOKEN;
 PATH: ('/' TOKEN) ('/' TOKEN)*;
 CLASS: ('kind'|'mixin'|'action');
 URI: ('http://' | 'https://') TOKEN;
 TOKEN: ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z')*;
-DIGIT: '0'..'9'*;
+DIGIT: '0'..'9'+;
 WS: (' ' | '\t'){$channel = HIDDEN};
