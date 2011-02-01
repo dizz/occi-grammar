@@ -24,6 +24,10 @@ tokens{
   CLOSE_PATH = '>';
 }
 
+// ----------------------------------------
+// ---------- All OCCI Headers ------------
+// ----------------------------------------
+
 occi_header:
     category_header
   | link_header
@@ -32,9 +36,8 @@ occi_header:
 ;
 
 // ----------------------------------------
-// ---------- Category attribute ----------
+// ----------- Category Header ------------
 // ----------------------------------------
-
 /*
 ABNF representation of category from the http rendering specification
 
@@ -121,6 +124,42 @@ attributes_names:
   attribute_attr_name (attribute_attr_name)*
 ;
 
+// ----------------------------------------
+// -------------- Link Header -------------
+// ----------------------------------------
+/*
+ABNF representation of category from the http rendering specification
+
+Link specification for links in general:
+
+  Link             = "Link" ":" #link-value
+  link-value       = "<" URI-Reference ">"
+                    ";" "rel" "=" <"> resource-type <">
+                    [ ";" "self" "=" <"> link-instance <"> ]
+                    [ ";" "category" "=" link-type ]
+                    *( ";" link-attribute )
+  term             = token
+  scheme           = URI
+  type-identifier  = scheme term
+  resource-type    = type-identifier *( 1*SP type-identifier )
+  link-type        = type-identifier *( 1*SP type-identifier )
+  link-instance    = URI-reference
+  link-attribute   = attribute-name "=" ( token | quoted-string )
+  attribute-name   = attr-component *( "." attr-component )
+  attr-component   = LOALPHA *( LOALPHA | DIGIT | "-" | "_" )
+
+Link specification for links that call actions:
+
+  Link             = "Link" ":" #link-value
+  link-value       = "<" action-uri ">"
+                    ";" "rel" "=" <"> action-type <">
+  term             = token
+  scheme           = URI
+  type-identifier  = scheme term
+  action-type      = type-identifier
+  action-uri       = URL "?" "action=" term
+*/
+//TODO action links spec
 link_header:
   LINK_HEADER  link_path rel (self | link_category)* attributes_attr?
 ;
@@ -167,7 +206,7 @@ attribute_attr_int_val:
 
 
 // ----------------------------------------
-// ------ X-OCCI-Attribute attribute ------
+// -------- X-OCCI-Attribute Header--------
 // ----------------------------------------
 /*
 
@@ -191,7 +230,7 @@ attribute_attrs:
 ;
 
 // ----------------------------------------
-// ------ X-OCCI-Location attribute -------
+// ------- X-OCCI-Location Header ---------
 // ----------------------------------------
 /*
 
@@ -215,6 +254,7 @@ location_path:
   PATH
 ;
 
+//TODO many of these lexical rules need to be more accurate
 ATTRIB_NAME: ('a'..'z' | 'A'..'Z')('a'..'z' | 'A'..'Z' | DIGIT)+ ('.') TOKEN;
 PATH: ('/' TOKEN) ('/' TOKEN)*;
 CLASS: ('kind'|'mixin'|'action');
