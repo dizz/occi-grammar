@@ -30,6 +30,7 @@ tokens{
 @lexer::header {
   package be.edmonds.occi;
 }
+
 // ----------------------------------------
 // ---------- All OCCI Headers ------------
 // ----------------------------------------
@@ -86,7 +87,7 @@ category_header:
   CATEGORY_HEADER category_header_val
 ;
 category_header_val:
-  term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | attributes)*
+  term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr)*
 ;
 term_attr:
   TOKEN
@@ -127,7 +128,7 @@ location_val:
   TOKEN
 ;
 
-attributes:
+cat_attributes_attr:
   CAT_ATTR_SEP ATTRIBUTES_ATTR VAL_ASSIGN QUOTE attributes_names QUOTE
 ;
 attributes_names:
@@ -172,31 +173,31 @@ Link specification for links that call actions:
 //TODO action links spec
 //TODO allow for multiple links per line seperated by ','
 link_header:
-  LINK_HEADER  link_path rel_attr (self | link_category)* attributes_attr?
+  LINK_HEADER  link_path_attr rel_attr (self_attr | link_category_attr)* link_attributes_attr?
 ;
 
-link_path:
+link_path_attr:
   OPEN_PATH link_path_val CLOSE_PATH
 ;
 link_path_val:
   PATH
 ;
 
-self:
+self_attr:
   CAT_ATTR_SEP SELF_ATTR VAL_ASSIGN QUOTE self_val QUOTE
 ;
 self_val:
   TOKEN
 ;
 
-link_category:
+link_category_attr:
   CAT_ATTR_SEP CAT_ATTR VAL_ASSIGN QUOTE link_category_val QUOTE
 ;
 link_category_val:
   TOKEN
 ;
 
-attributes_attr:
+link_attributes_attr:
   (CAT_ATTR_SEP attribute_attr)+
 ;
 attribute_attr:
