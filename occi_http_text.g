@@ -24,6 +24,12 @@ tokens{
   CLOSE_PATH = '>';
 }
 
+@header {
+  package be.edmonds.occi;
+}
+@lexer::header {
+  package be.edmonds.occi;
+}
 // ----------------------------------------
 // ---------- All OCCI Headers ------------
 // ----------------------------------------
@@ -34,6 +40,7 @@ occi_header:
   | attribute_header
   | location_header
   )+
+  EOF
 ;
 
 // ----------------------------------------
@@ -79,41 +86,41 @@ category_header:
   CATEGORY_HEADER category_header_val
 ;
 category_header_val:
-  term scheme class (title | rel | location | attributes)*
+  term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | attributes)*
 ;
-term:
+term_attr:
   TOKEN
 ;
 
-scheme:
+scheme_attr:
   CAT_ATTR_SEP SCHEME_ATTR VAL_ASSIGN QUOTE scheme_val QUOTE
 ;
 scheme_val:
   URI
 ;
 
-class:
+class_attr:
   CAT_ATTR_SEP CLASS_ATTR VAL_ASSIGN QUOTE class_val QUOTE
 ;
 class_val:
   CLASS
 ;
 
-title:
+title_attr:
   CAT_ATTR_SEP TITLE_ATTR VAL_ASSIGN QUOTE title_val QUOTE
 ;
 title_val:
   TOKEN
 ;
 
-rel:
+rel_attr:
   CAT_ATTR_SEP REL_ATTR VAL_ASSIGN QUOTE rel_val QUOTE
 ;
 rel_val:
   TOKEN
 ;
 
-location:
+location_attr:
   CAT_ATTR_SEP LOCATION_ATTR VAL_ASSIGN QUOTE location_val QUOTE
 ;
 location_val:
@@ -165,7 +172,7 @@ Link specification for links that call actions:
 //TODO action links spec
 //TODO allow for multiple links per line seperated by ','
 link_header:
-  LINK_HEADER  link_path rel (self | link_category)* attributes_attr?
+  LINK_HEADER  link_path rel_attr (self | link_category)* attributes_attr?
 ;
 
 link_path:
@@ -265,4 +272,4 @@ CLASS: ('kind'|'mixin'|'action');
 URI: ('http://' | 'https://') TOKEN;
 TOKEN: ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z')*;
 DIGIT: '0'..'9'+;
-WS: (' ' | '\t' | '\n' | '\r'){$channel = HIDDEN};
+WS: (' ' | '\t' | '\n' | '\r'){$channel = HIDDEN;};
