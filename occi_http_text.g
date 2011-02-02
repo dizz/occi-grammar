@@ -268,25 +268,31 @@ link_header
 link_header_val
   : link_path_attr rel_attr (self_attr | link_category_attr)* link_attributes_attr?
 ;
-link_path_attr:
-  OPEN_PATH link_path_val CLOSE_PATH
+link_path_attr returns [String link_path_val]
+  : OPEN_PATH link_path_val CLOSE_PATH
+    {$link_path_val = $link_path_val.link_path_val;}
 ;
-link_path_val:
-  PATH
-;
-
-self_attr:
-  CAT_ATTR_SEP SELF_ATTR VAL_ASSIGN QUOTE self_val QUOTE
-;
-self_val:
-  TOKEN
+link_path_val returns [String link_path_val]
+  : PATH
+    {$link_path_val = $PATH.text;}
 ;
 
-link_category_attr:
-  CAT_ATTR_SEP CAT_ATTR VAL_ASSIGN QUOTE link_category_val QUOTE
+self_attr returns [String self_val]
+  : CAT_ATTR_SEP SELF_ATTR VAL_ASSIGN QUOTE self_val QUOTE
+    {$self_val = $self_val.self_val;}
 ;
-link_category_val:
-  TOKEN
+self_val returns [String self_val]
+  : TOKEN
+  {$self_val = $TOKEN.text;}
+;
+
+link_category_attr returns [String link_category_val]
+  : CAT_ATTR_SEP CAT_ATTR VAL_ASSIGN QUOTE link_category_val QUOTE
+    {$link_category_val = $link_category_val.link_category_val;}
+;
+link_category_val returns [String link_category_val]
+  : TOKEN
+  {$link_category_val = $TOKEN.text;}
 ;
 
 link_attributes_attr:
@@ -302,11 +308,13 @@ attribute_attr_name returns[String attribute_name]
 attribute_attr_val:
   (QUOTE attribute_attr_string_val QUOTE) | attribute_attr_int_val
 ;
-attribute_attr_string_val:
-  TOKEN
+attribute_attr_string_val returns [String attr_str]
+  : TOKEN
+    {$attr_str = $TOKEN.text;}
 ;
-attribute_attr_int_val:
-  DIGIT
+attribute_attr_int_val returns [String attr_int]
+  : DIGIT
+    {$attr_int = $DIGIT.text;}
 ;
 
 
@@ -348,22 +356,32 @@ Examples:
   X-OCCI-Location: http://example.com/compute/123
   X-OCCI-Location: http://example.com/compute/123, http://example.com/compute/123
 */
-//TODO output location header as JSON
-location_header:
-  LOCATION_HEADER location_paths
+location_header returns [String locations_val]
+  : LOCATION_HEADER location_paths
+    {$locations_val = "{\"location\":" + $location_paths.locations_vals + "}";}
 ;
-location_paths:
-  location_path (COMMA location_path)*
+location_paths returns [String locations_vals]
+  : single_loc = location_path
+    {$locations_vals = $single_loc.path_val;}
+
+  | multi_loc1 = location_path
+    {$locations_vals = "[\"" + $multi_loc1.path_val + "\"";}
+    (
+      COMMA multi_loc2 = location_path
+      {$locations_vals += ", \"" + $multi_loc2.path_val + "\"";}
+    )+
+    {$locations_vals += "]";}
 ;
-location_path:
-  PATH
+location_path returns [String path_val]
+  : URI
+    {$path_val = $URI.text;}
 ;
 
 //TODO many of these lexical rules need to be more accurate
 ATTRIB_NAME: ('a'..'z' | 'A'..'Z')('a'..'z' | 'A'..'Z' | DIGIT)+ ('.') TOKEN;
 PATH: ('/' TOKEN) ('/' TOKEN)*;
 CLASS: ('kind'|'mixin'|'action');
-URI: ('http://' | 'https://') TOKEN;
+URI: ('http://' | 'https://') (TOKEN | ('.' | '/' | '#')*);
 TOKEN: ('a'..'z' | 'A'..'Z') ('a'..'z' | 'A'..'Z')*;
 DIGIT: '0'..'9'+;
 WS: (' ' | '\t' | '\n' | '\r'){$channel = HIDDEN;};
