@@ -1,6 +1,6 @@
 grammar occi_http_text;
 
-//TODO So the generated lexer and parser are useable by all languages and to not be dependant on embedded target code (e.g. actions)
+//TODO: So the generated lexer and parser are useable by all languages and to not be dependant on embedded target code (e.g. actions)
 //      the parser should return well-formed json which can be deserialised by most languages.
 
 //Caveat! JSON strings are created via concatenation. This is not efficent. If you want more efficency, modify the
@@ -26,6 +26,7 @@ tokens{
   REL_ATTR = 'rel';
   LOCATION_ATTR = 'location';
   ATTRIBUTES_ATTR = 'attributes';
+  ACTION_ATTR = 'actions';
 
   //Link attribute names
   SELF_ATTR = 'self';
@@ -56,9 +57,11 @@ tokens{
 
 occi_header:
   (
+  //Nice-to-have: merge these 2 rules
     multiple_category_header
   | category_header
 
+  //Nice-to-have: merge these 2 rules
   | multiple_link_header
   | link_header
 
@@ -107,16 +110,21 @@ Examples:
       attributes="occi.storage.size occi.storage.state";
       actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize ...";
 */
-//TODO implement action attribute
-multiple_category_header
-  : CATEGORY_HEADER category_header_val (COMMA category_header_val)+
+multiple_category_header returns [String category]
+  : CATEGORY_HEADER multi_cat1 = category_header_val
+    {$category = "["+$multi_cat1.category;}
+    (
+      COMMA multi_cat2 = category_header_val
+      {$category += ", "+$multi_cat2.category;}
+    )+
+    {$category += "]";}
 ;
 category_header returns [String category]
   : CATEGORY_HEADER category_header_val
     {$category = "{\"category\":{" + $category_header_val.category + "}}"; }
 ;
 category_header_val returns [String category]
-  : term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr)*
+  : term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr | action_attr)*
     {
       $category =
       "\"term\":\"" + $term_attr.term + "\", " +
@@ -125,7 +133,8 @@ category_header_val returns [String category]
       "\"title\":\"" + $title_attr.title + "\", "+
       "\"rel\":\"" + $rel_attr.rel + "\", "+
       "\"location\":\"" + $location_attr.location + "\"," +
-      "\"attributes\":[" + $cat_attributes_attr.attributes + "]"
+      "\"attributes\":[" + $cat_attributes_attr.attributes + "], " +
+      "\"actions\":[" + $action_attr.actions + "]"
     ;}
 ;
 term_attr returns[String term]
@@ -194,6 +203,23 @@ attributes_names returns[String attributes]
     ( multi_attr2 = attribute_attr_name
       {$attributes += ", \"" + $multi_attr2.attribute_name + "\"";}
     )+
+;
+action_attr returns [String actions]
+  : CAT_ATTR_SEP ACTION_ATTR VAL_ASSIGN QUOTE action_val QUOTE
+    {$actions = $action_val.actions;}
+;
+action_val returns [String actions]
+  : single_attr = action_uri
+    {$actions = "\"" + $single_attr.action + "\"";}
+  | multi_attr1 = action_uri {$actions = "\"" + $multi_attr1.action + "\"";}
+    (
+      multi_attr2 = action_uri {$actions += ", \"" + $multi_attr2.action + "\"";}
+    )+
+
+;
+action_uri returns [String action]
+  : URI
+    {$action = $URI.text;}
 ;
 // ----------------------------------------
 // -------------- Link Header -------------
