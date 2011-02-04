@@ -8,6 +8,8 @@ grammar occi_http_text;
 
 //Idea: using a OVF library make the intermediatry output format OVF :-)
 
+//TODO: split into seperate grammar files (Category, Link, Attribute, Location)
+
 options {
   //Change me: if you want a different targetted language for the parser/lexer generation
   //Values: {ActionScript, C, CPP, CSharp2, CSharp3, Java, Delphi, JavaScript, ObjC, Perl5, Ruby, Python}
@@ -60,10 +62,7 @@ tokens{
 occi_headers returns [String header]
   :
   (
-	  //Nice-to-have: merge these 2 rules
-	    multiple_category_header {$header = $multiple_category_header.category;}
-
-	  | category_header {$header = $category_header.category;}
+	    category_header {$header = "[{"+$category_header.category + "}]";}
 
 	  | link_header {$header = $link_header.link_header;}
 
@@ -112,18 +111,17 @@ Examples:
       attributes="occi.storage.size occi.storage.state";
       actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize ...";
 */
-multiple_category_header returns [String category]
-  : CATEGORY_HEADER multi_cat1 = category_header_val
-    {$category = "["+$multi_cat1.category;}
-    (
-      COMMA multi_cat2 = category_header_val
-      {$category += ", "+$multi_cat2.category;}
-    )+
-    {$category += "]";}
-;
 category_header returns [String category]
   : CATEGORY_HEADER category_header_val
-    {$category = "{\"category\":{" + $category_header_val.category + "}}"; }
+    {$category = "\"category\":{" + $category_header_val.category + "}"; }
+
+  | CATEGORY_HEADER multi_cat1 = category_header_val
+    {$category = "\"category\" : [{"+$multi_cat1.category + "}";}
+    (
+      COMMA multi_cat2 = category_header_val
+      {$category += ", {"+$multi_cat2.category + "}";}
+    )+
+    {$category += "]";}
 ;
 category_header_val returns [String category]
   : term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr | action_attr)*
