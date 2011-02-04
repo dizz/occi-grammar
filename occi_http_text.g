@@ -61,15 +61,17 @@ tokens{
 
 occi_headers returns [String header]
   :
+  {$header = "[";}
   (
-	    category_header {$header = "[{"+$category_header.category + "}]";}
+	    category_header {$header += $category_header.category;}
 
-	  | link_header {$header = $link_header.link_header;}
+	  | link_header {$header += $link_header.link_header;}
 
-	  | attribute_header {$header = $attribute_header.attribute_header;}
+	  | attribute_header {$header += $attribute_header.attribute_header;}
 
-	  | location_header {$header = $location_header.locations_val;}
+	  | location_header {$header += $location_header.locations_val;}
   )+
+  {$header += "]";}
   EOF
 ;
 
@@ -113,15 +115,15 @@ Examples:
 */
 category_header returns [String category]
   : CATEGORY_HEADER category_header_val
-    {$category = "\"category\":{" + $category_header_val.category + "}"; }
+    {$category = "{\"category\":{" + $category_header_val.category + "}}"; }
 
   | CATEGORY_HEADER multi_cat1 = category_header_val
-    {$category = "\"category\" : [{"+$multi_cat1.category + "}";}
+    {$category = "{\"category\" : [{"+$multi_cat1.category + "}";}
     (
       COMMA multi_cat2 = category_header_val
       {$category += ", {"+$multi_cat2.category + "}";}
     )+
-    {$category += "]";}
+    {$category += "]}";}
 ;
 category_header_val returns [String category]
   : term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr | action_attr)*
@@ -261,8 +263,13 @@ link_header returns [String link_header]
   : LINK_HEADER single_val = link_header_val
     {$link_header = "{\"link\":{" + $single_val.link_header_val + "}}";}
 
-  | LINK_HEADER link_header_val (COMMA link_header_val)+
-    {;}
+  | LINK_HEADER multi_val1 = link_header_val
+    {$link_header = "{\"link\" : [{"+$multi_val1.link_header_val + "}";}
+    (
+      COMMA multi_val2 = link_header_val
+      {$link_header += ", {"+$multi_val2.link_header_val + "}";}
+    )+
+    {$link_header += "]}";}
 ;
 link_header_val returns [String link_header_val]
   : OPEN_PATH link_path_val CLOSE_PATH rel_attr
