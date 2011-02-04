@@ -1,10 +1,12 @@
 grammar occi_http_text;
 
-//TODO: So the generated lexer and parser are useable by all languages and to not be dependant on embedded target code (e.g. actions)
-//      the parser should return well-formed json which can be deserialised by most languages.
+//The generated lexer and parser are useable by all languages and are not dependant on embedded target code (e.g. actions)
+//the parser returns well-formed json which can be deserialised by most languages.
 
-//Caveat! JSON strings are created via concatenation. This is not efficent. If you want more efficency, modify the
+//Caveat! JSON strings are created via string concatenation. This is not efficent. If you want more efficency, modify the
 //        grammar so that it utilises more direct means of in-memory/domain specific model creation.
+
+//Idea: using a OVF library make the intermediatry output format OVF :-)
 
 options {
   //Change me: if you want a different targetted language for the parser/lexer generation
@@ -55,19 +57,19 @@ tokens{
 // ---------- All OCCI Headers ------------
 // ----------------------------------------
 
-occi_header:
+occi_headers returns [String header]
+  :
   (
-  //Nice-to-have: merge these 2 rules
-    multiple_category_header
-  | category_header
+	  //Nice-to-have: merge these 2 rules
+	    multiple_category_header {$header = $multiple_category_header.category;}
 
-  //Nice-to-have: merge these 2 rules
-  | multiple_link_header
-  | link_header
+	  | category_header {$header = $category_header.category;}
 
-  | attribute_header
+	  | link_header {$header = $link_header.link_header;}
 
-  | location_header
+	  | attribute_header {$header = $attribute_header.attribute_header;}
+
+	  | location_header {$header = $location_header.locations_val;}
   )+
   EOF
 ;
@@ -194,14 +196,14 @@ cat_attributes_attr returns[String attributes]
 ;
 attributes_names returns[String attributes]
   : single_attr = attribute_attr_name
-    {$attributes = "\"" + $single_attr.attribute_name + "\"";}
+    {$attributes = $single_attr.attribute_name;}
 
   | {$attributes="";}
     multi_attr1 = attribute_attr_name
-    {$attributes = "\"" + $multi_attr1.attribute_name + "\"";}
+    {$attributes = $multi_attr1.attribute_name;}
 
     ( multi_attr2 = attribute_attr_name
-      {$attributes += ", \"" + $multi_attr2.attribute_name + "\"";}
+      {$attributes += ", " + $multi_attr2.attribute_name;}
     )+
 ;
 action_attr returns [String actions]
@@ -256,25 +258,48 @@ Link specification for links that call actions:
   action-type      = type-identifier
   action-uri       = URL "?" "action=" term
 */
-//TODO action links spec to output JSON
-//TODO allow for 2 forms of Link headers
-//TODO allow for multiple links per line seperated by ','
-multiple_link_header
-  : 'link TODO'
+
+link_header returns [String link_header]
+  : LINK_HEADER single_val = link_header_val
+    {$link_header = "{\"link\":{" + $single_val.link_header_val + "}}";}
+
+  | LINK_HEADER link_header_val (COMMA link_header_val)+
+    {;}
 ;
-link_header
-  : LINK_HEADER  link_header_val
-;
-link_header_val
-  : link_path_attr rel_attr (self_attr | link_category_attr)* link_attributes_attr?
-;
-link_path_attr returns [String link_path_val]
-  : OPEN_PATH link_path_val CLOSE_PATH
-    {$link_path_val = $link_path_val.link_path_val;}
+link_header_val returns [String link_header_val]
+  : OPEN_PATH link_path_val CLOSE_PATH rel_attr
+    { $link_header_val =
+      "\"uri\":\"" + $link_path_val.link_path_val + "\"" +
+      ", \"rel\":\"" + $rel_attr.rel + "\""
+    ;}
+    (
+      (
+        self_attr | link_category_attr
+        {$link_header_val +=
+          ", \"self\":\"" + $self_attr.self_val + "\"" +
+          ", \"category\":\"" + $link_category_attr.link_category_val + "\""
+        ;}
+      )*
+      (
+        link_attributes_attr
+        {$link_header_val += ", \"attributes\":{" + $link_attributes_attr.link_attributes_attr + "}";}
+      )?
+    )
+
+  | OPEN_PATH action_link_path_val CLOSE_PATH rel_attr
+    {$link_header_val =
+      "\"uri\":" + $action_link_path_val.action_link_path_val +
+      ", \"rel\":" + $rel_attr.rel
+    ;}
 ;
 link_path_val returns [String link_path_val]
   : PATH
     {$link_path_val = $PATH.text;}
+;
+
+action_link_path_val returns [String action_link_path_val]
+  : all=(PATH '?action=' TOKEN)
+    {$action_link_path_val = $all.text;}
 ;
 
 self_attr returns [String self_val]
@@ -295,18 +320,33 @@ link_category_val returns [String link_category_val]
   {$link_category_val = $TOKEN.text;}
 ;
 
-link_attributes_attr:
-  (CAT_ATTR_SEP attribute_attr)+
+link_attributes_attr returns [String link_attributes_attr]
+  : CAT_ATTR_SEP single_attr = attribute_attr
+    {$link_attributes_attr = $single_attr.attribute_attr;}
+
+  |
+    CAT_ATTR_SEP multi_attr1 = attribute_attr
+    {$link_attributes_attr = $multi_attr1.attribute_attr;}
+    (
+      CAT_ATTR_SEP multi_attr2 = attribute_attr
+      {$link_attributes_attr += ", " + $multi_attr2.attribute_attr;}
+    )+
 ;
-attribute_attr:
-  attribute_attr_name VAL_ASSIGN attribute_attr_val
+attribute_attr returns [String attribute_attr]
+  : attribute_attr_name VAL_ASSIGN attribute_attr_val
+    {$attribute_attr = $attribute_attr_name.attribute_name + ":" + $attribute_attr_val.attribute_attr_val;}
 ;
-attribute_attr_name returns[String attribute_name]
+attribute_attr_name returns [String attribute_name]
   : ATTRIB_NAME
-  {$attribute_name = $ATTRIB_NAME.text;}
+    {$attribute_name = "\""+$ATTRIB_NAME.text+"\"";}
 ;
-attribute_attr_val:
-  (QUOTE attribute_attr_string_val QUOTE) | attribute_attr_int_val
+attribute_attr_val returns [String attribute_attr_val]
+  : (
+      QUOTE attribute_attr_string_val QUOTE
+      {$attribute_attr_val = "\""+$attribute_attr_string_val.attr_str+"\"";}
+    )
+  | attribute_attr_int_val
+    {$attribute_attr_val = $attribute_attr_int_val.attr_int;}
 ;
 attribute_attr_string_val returns [String attr_str]
   : TOKEN
@@ -334,12 +374,22 @@ Example:
   X-OCCI-Attribute: occi.compute.architechture="x86_64"
   X-OCCI-Attribute: occi.compute.architechture="x86_64", occi.compute.cores=2
 */
-//TODO output attribute header as JSON
-attribute_header:
-  ATTR_HEADER attribute_attrs
+attribute_header returns [String attribute_header]
+  : ATTR_HEADER attribute_attrs
+    {$attribute_header = "{\"attributes\":{"+$attribute_attrs.attribute_attrs+"}}";}
 ;
-attribute_attrs:
-  attribute_attr (COMMA attribute_attr)*
+attribute_attrs returns [String attribute_attrs]
+  : attribute_attr
+    {$attribute_attrs = $attribute_attr.attribute_attr;}
+
+  | multi_attr1 = attribute_attr
+    {$attribute_attrs = $multi_attr1.attribute_attr;}
+
+  (
+    COMMA multi_attr2 = attribute_attr
+    {$attribute_attrs += ", " + $multi_attr2.attribute_attr;}
+  )+
+
 ;
 
 // ----------------------------------------
