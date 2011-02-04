@@ -1,5 +1,9 @@
 grammar occi_http_text;
 
+//Use this to validate either received or generated OCCI text renderings.
+//  Service implementations: use to validate what a client sends and optionally, use the generated JSON to map to an internal domain model
+//  Client implementations: use to validate text renderings that will be sent to a OCCI compliant service
+
 //The generated lexer and parser are useable by all languages and are not dependant on embedded target code (e.g. actions)
 //the parser returns well-formed json which can be deserialised by most languages.
 
@@ -59,19 +63,22 @@ tokens{
 // ---------- All OCCI Headers ------------
 // ----------------------------------------
 
-occi_headers returns [String header]
-  :
-  {$header = "[";}
-  (
-	    category_header {$header += $category_header.category;}
-
-	  | link_header {$header += $link_header.link_header;}
-
-	  | attribute_header {$header += $attribute_header.attribute_header;}
-
-	  | location_header {$header += $location_header.locations_val;}
-  )+
-  {$header += "]";}
+occi_request returns [String request]
+  : occi_header
+    {$request = "[" + $occi_header.header + "]";}
+  | multi_val1 = occi_header
+    {$request = "[" + $multi_val1.header;}
+    (
+      multi_val2 = occi_header
+      {$request += ", " + $multi_val2.header;}
+    )+
+    {$request += "]";}
+;
+occi_header returns [String header]
+  : category_header {$header = $category_header.category;}
+	| link_header {$header = $link_header.link_header;}
+	| attribute_header {$header = $attribute_header.attribute_header;}
+	| location_header {$header = $location_header.locations_val;}
   EOF
 ;
 
