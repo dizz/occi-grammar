@@ -65,14 +65,14 @@ tokens{
 
 occi_request returns [String request]
   : occi_header
-    {$request = "[" + $occi_header.header + "]";}
+    {$request = "[{" + $occi_header.header + "}]";}
   | multi_val1 = occi_header
-    {$request = "[" + $multi_val1.header;}
+    {$request = "[{" + $multi_val1.header;}
     (
       multi_val2 = occi_header
       {$request += ", " + $multi_val2.header;}
     )+
-    {$request += "]";}
+    {$request += "}]";}
 ;
 occi_header returns [String header]
   : category_header {$header = $category_header.category;}
@@ -122,15 +122,15 @@ Examples:
 */
 category_header returns [String category]
   : CATEGORY_HEADER category_header_val
-    {$category = "{\"category\":{" + $category_header_val.category + "}}"; }
+    {$category = "\"category\":{" + $category_header_val.category + "}"; }
 
   | CATEGORY_HEADER multi_cat1 = category_header_val
-    {$category = "{\"category\" : [{"+$multi_cat1.category + "}";}
+    {$category = "\"category\" : [{"+$multi_cat1.category + "}";}
     (
       COMMA multi_cat2 = category_header_val
       {$category += ", {"+$multi_cat2.category + "}";}
     )+
-    {$category += "]}";}
+    {$category += "]";}
 ;
 category_header_val returns [String category]
   : term_attr scheme_attr class_attr (title_attr | rel_attr | location_attr | cat_attributes_attr | action_attr)*
@@ -268,15 +268,15 @@ Link specification for links that call actions:
 
 link_header returns [String link_header]
   : LINK_HEADER single_val = link_header_val
-    {$link_header = "{\"link\":{" + $single_val.link_header_val + "}}";}
+    {$link_header = "\"link\":{" + $single_val.link_header_val + "}";}
 
   | LINK_HEADER multi_val1 = link_header_val
-    {$link_header = "{\"link\" : [{"+$multi_val1.link_header_val + "}";}
+    {$link_header = "\"link\" : [{"+$multi_val1.link_header_val + "}";}
     (
       COMMA multi_val2 = link_header_val
       {$link_header += ", {"+$multi_val2.link_header_val + "}";}
     )+
-    {$link_header += "]}";}
+    {$link_header += "]";}
 ;
 link_header_val returns [String link_header_val]
   : OPEN_PATH link_path_val CLOSE_PATH rel_attr
@@ -388,7 +388,7 @@ Example:
 */
 attribute_header returns [String attribute_header]
   : ATTR_HEADER attribute_attrs
-    {$attribute_header = "{\"attributes\":{"+$attribute_attrs.attribute_attrs+"}}";}
+    {$attribute_header = "\"attributes\":{"+$attribute_attrs.attribute_attrs+"}";}
 ;
 attribute_attrs returns [String attribute_attrs]
   : attribute_attr
@@ -420,7 +420,7 @@ Examples:
 */
 location_header returns [String locations_val]
   : LOCATION_HEADER location_paths
-    {$locations_val = "{\"location\":" + $location_paths.locations_vals + "}";}
+    {$locations_val = "\"location\":" + $location_paths.locations_vals;}
 ;
 location_paths returns [String locations_vals]
   : single_loc = location_path
