@@ -1,9 +1,5 @@
 grammar CategoryLinkAttr;
 
-options {
-  language = Java;
-}
-
 category: 'Category' ':' category_values;
 	category_values: category_value (',' category_value)*;
 	category_value: term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?;
@@ -39,6 +35,10 @@ link: 'Link' ':' link_values;
 
 attribute: 'X-OCCI-Attribute' ':' attributes_attr ;
 
+location: 'X-OCCI-Location' ':' location_values;
+location_values : URL (',' URL)*;
+
+URL           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
 DIGITS        : ('0'..'9')* ;
 QUOTE         : '"' | '\'' ;
 TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_')* ;
