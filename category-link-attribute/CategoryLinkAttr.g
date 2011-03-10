@@ -239,18 +239,24 @@ attribute              returns [java.util.HashMap attrs] :
                          ;
 
 location               returns [java.util.ArrayList urls] :
-                          'X-OCCI-Location' ':'
-                          u1=URI {
-                            $urls = new java.util.ArrayList();
-                            $urls.add(u1.text);
-                          }
-                          (
-                            ','
-                            u2=URI{
-                              $urls.add(u2.text);
-                            }
-                          )*
-                       ;
+                         'X-OCCI-Location' ':'
+                         location_values{
+                           $urls = $location_values.urls;
+                         }
+                         ;
+
+location_values        returns [java.util.ArrayList urls]:
+	                       u1=URI {
+	                         $urls = new java.util.ArrayList();
+	                         $urls.add($u1.text);
+	                       }
+	                       (
+	                         ','
+	                         u2=URI{
+	                           $urls.add($u2.text);
+	                         }
+	                       )*
+	                       ;
 
 URI           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
 DIGITS        : ('0'..'9')* ;
