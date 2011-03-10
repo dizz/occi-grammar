@@ -4,17 +4,109 @@ options {
   language = Java;
 }
 
-category: 'Category' ':' category_values;
-	category_values: category_value (',' category_value)*;
-	category_value: term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?;
-	term_attr            : TERM_VALUE;
-	scheme_attr          : ';' 'scheme' '=' QUOTED_VALUE; //this value can be passed on to the uri rule in Location for validation
-	klass_attr           : ';' 'class' '=' QUOTED_VALUE;
-	title_attr           : ';' 'title' '=' QUOTED_VALUE;
-	rel_attr             : ';' 'rel' '=' QUOTED_VALUE; //this value can be passed on to the uri rule in Location for validation
-	location_attr        : ';' 'location' '=' TARGET_VALUE; //this value can be passed on to the uri rule in Location for validation
-	c_attributes_attr    : ';' 'attributes' '=' QUOTED_VALUE; //these value once extracted can be passed on to the attributes_attr rule
-	actions_attr         : ';' 'actions' '=' QUOTED_VALUE; //this value can be passed on to the uri rule in Location for validation
+category               returns [java.util.ArrayList cats] :
+                         'Category' ':'
+                         category_values{
+                           $cats = $category_values.cats;
+                         }
+                         ;
+
+	category_values      returns [java.util.ArrayList cats] :
+	                       cv1=category_value{
+	                         $cats = new ArrayList();
+	                         $cats.add($cv1.cat);
+	                       }
+	                       (
+	                       ',' cv2=category_value{
+	                             $cats.add($cv2.cat);
+	                           }
+	                       )*
+	                       ;
+
+	category_value       returns [java.util.HashMap cat] :
+	                       term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?{
+	                         $cat = new java.util.HashMap();
+
+	                         $cat.put("occi.core.term", $term_attr.value);
+	                         $cat.put("occi.core.scheme", $scheme_attr.value);
+	                         $cat.put("occi.core.class", $klass_attr.value);
+
+                           if($title_attr.value !=null)
+                              $cat.put("occi.core.title", $title_attr.value);
+
+                           if($rel_attr.value != null)
+                              $cat.put("occi.core.rel", $rel_attr.value);
+
+                           if($location_attr.value != null)
+                              $cat.put("occi.core.location", $location_attr.value);
+
+                           if($c_attributes_attr.value != null)
+                              $cat.put("occi.core.attributes", $c_attributes_attr.value);
+
+                           if($actions_attr.value != null)
+                              $cat.put("occi.core.actions", $actions_attr.value);
+	                       }
+                         ;
+
+	term_attr            returns [String value] :
+	                       TERM_VALUE{
+	                         $value = $TERM_VALUE.text;
+	                       }
+	                       ;
+
+	//this value can be passed on to the uri rule in Location for validation
+	scheme_attr          returns [String value] :
+	                       ';' 'scheme' '='
+	                       QUOTED_VALUE{
+	                         $value = $QUOTED_VALUE.text;
+	                       }
+	                       ;
+
+	klass_attr           returns [String value] :
+	                       ';' 'class' '='
+	                       QUOTED_VALUE{
+	                         $value = $QUOTED_VALUE.text;
+	                       }
+	                       ;
+
+	title_attr           returns [String value] :
+	                       ';' 'title' '='
+	                       QUOTED_VALUE{
+	                         $value = $QUOTED_VALUE.text;
+	                       }
+	                       ;
+
+	//this value can be passed on to the uri rule in Location for validation
+	rel_attr             returns [String value] :
+	                     ';' 'rel' '='
+	                     QUOTED_VALUE{
+	                       $value = $QUOTED_VALUE.text;
+	                     }
+	                     ;
+
+  //this value can be passed on to the uri rule in Location for validation
+	location_attr        returns [String value] :
+	                       ';' 'location' '='
+	                       TARGET_VALUE{
+	                         $value = $TARGET_VALUE.text;
+	                       }
+	                       ;
+
+  //these value once extracted can be passed on to the attributes_attr rule
+	c_attributes_attr    returns [String value] :
+	                       ';' 'attributes' '='
+	                       QUOTED_VALUE{
+	                         $value = $QUOTED_VALUE.text;
+	                       }
+	                       ;
+
+	//this value can be passed on to the uri rule in Location for validation
+	actions_attr         returns [String value] :
+	                       ';' 'actions' '='
+	                       QUOTED_VALUE{
+	                         $value = $QUOTED_VALUE.text;
+	                       }
+	                       ;
 
 /* e.g.
         Link:
@@ -25,11 +117,58 @@ category: 'Category' ':' category_values;
         com.example.drive0.interface="ide0", com.example.drive1.interface="ide1"
 */
 
-link                   : 'Link' ':' link_values;
-link_values            : link_value (',' link_value)*;
-link_value             : target_attr rel_attr self_attr? category_attr? attribute_attr? ;
+link                   returns [java.util.ArrayList link] :
+                        'Link' ':'
+                        link_values {
+                          $link = $link_values.links;
+                        }
+                        ;
 
-target_attr            : '<' (TARGET_VALUE) ('?action=' TERM_VALUE)? '>' ;
+link_values            returns [java.util.ArrayList links] :
+                        lv1=link_value {
+                          $links = new java.util.ArrayList();
+                          $links.add($lv1.linkAttrs);
+                        }
+                        (
+                        ',' lv2=link_value{
+                              $links.add($lv2.linkAttrs);
+                            }
+                        )*
+                        ;
+
+link_value             returns [java.util.HashMap linkAttrs] :
+                        target_attr rel_attr self_attr? category_attr? attribute_attr?
+                        {
+                          $linkAttrs = new java.util.HashMap();
+
+                          $linkAttrs.put("occi.core.target", $target_attr.targetAndTerm.get(0));
+                          if($target_attr.targetAndTerm.size() == 2)
+                            $linkAttrs.put("occi.core.actionterm", $target_attr.targetAndTerm.get(1));
+
+                          $linkAttrs.put("occi.core.rel", $rel_attr.value);
+
+                          if($self_attr.value != null)
+                            $linkAttrs.put("occi.core.self", $self_attr.value);
+
+                          if($category_attr.value != null)
+                            $linkAttrs.put("occi.core.category", $category_attr.value);
+
+                          if($attribute_attr.attr != null)
+                            $linkAttrs.putAll($attribute_attr.attr);
+                        }
+                        ;
+
+target_attr            returns [java.util.ArrayList targetAndTerm] :
+                        '<' TARGET_VALUE {
+                          $targetAndTerm = new java.util.ArrayList();
+                          $targetAndTerm.add($TARGET_VALUE.text);
+                        }
+                        ('?action='
+                          TERM_VALUE{
+                            $targetAndTerm.add($TERM_VALUE.text);
+                          }
+                        )? '>'
+                        ;
 
 self_attr              returns [String value] :
                         ';' 'self' '=' QUOTED_VALUE{
@@ -61,16 +200,23 @@ attributes_attr        returns [java.util.HashMap attrs] :
                         )*
                         ;
 
-attribute_kv_attr      returns [ArrayList keyval] :
+attribute_kv_attr      returns [java.util.ArrayList keyval] :
                         attribute_name_attr '=' attribute_value_attr {
+                          $keyval = new java.util.ArrayList();
                           $keyval.add($attribute_name_attr.text);
                           $keyval.add($attribute_value_attr.text);
                         }
                         ;
+
 attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ;
 attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ;
 
-attribute: 'X-OCCI-Attribute' ':' attributes_attr ;
+attribute              returns [java.util.HashMap attrs] :
+                         'X-OCCI-Attribute' ':'
+                         attributes_attr{
+                           $attrs = $attributes_attr.attrs;
+                         }
+                         ;
 
 DIGITS        : ('0'..'9')* ;
 QUOTE         : '"' | '\'' ;
