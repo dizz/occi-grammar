@@ -4,8 +4,6 @@ options {
   language = Java;
 }
 
-//just confirming branch
-
 category: 'Category' ':' category_values;
 	category_values: category_value (',' category_value)*;
 	category_value: term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?;
@@ -27,17 +25,50 @@ category: 'Category' ':' category_values;
         com.example.drive0.interface="ide0", com.example.drive1.interface="ide1"
 */
 
-link: 'Link' ':' link_values;
-	link_values: link_value (',' link_value)*;
-	link_value: target_attr rel_attr self_attr? category_attr? attribute_attr? ;
-	target_attr            : '<' (TARGET_VALUE) ('?action=' TERM_VALUE)? '>' ; //this value can be passed on to the rel uri rule in Location for validation with the '<' and '>' stripped
-	self_attr              : ';' 'self' '=' QUOTED_VALUE ; //this value can be passed on to the uri rule in Location for validation
-	category_attr          : ';' 'category' '=' QUOTED_VALUE ; //this value can be passed on to the uri rule in Location for validation
-	attribute_attr         : ';' attributes_attr ; /* e.g. com.example.drive0.interface="ide0", com.example.drive1.interface="ide1" */
-	 attributes_attr        : attribute_kv_attr (',' attribute_kv_attr)* ; /* e.g. com.example.drive0.interface="ide0", com.example.drive1.interface="ide1" */
-	   attribute_kv_attr      : attribute_name_attr '=' attribute_value_attr; /* e.g. com.example.drive0.interface="ide0" */
-	     attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ; /* e.g. com.example.drive0.interface */
-	     attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ; /* e.g. "ide0" or 12 or 12.232 */
+link                   : 'Link' ':' link_values;
+link_values            : link_value (',' link_value)*;
+link_value             : target_attr rel_attr self_attr? category_attr? attribute_attr? ;
+
+target_attr            : '<' (TARGET_VALUE) ('?action=' TERM_VALUE)? '>' ;
+
+self_attr              returns [String value] :
+                        ';' 'self' '=' QUOTED_VALUE{
+                          $value = $QUOTED_VALUE.text;
+                        }
+                        ;
+
+category_attr          returns [String value] :
+                        ';' 'category' '=' QUOTED_VALUE {
+                          $value = $QUOTED_VALUE.text;
+                        }
+                        ;
+
+attribute_attr         returns [java.util.HashMap attr] :
+                        ';' attributes_attr {
+                            $attr = $attributes_attr.attrs;
+                        }
+                        ;
+
+attributes_attr        returns [java.util.HashMap attrs] :
+                        kv1=attribute_kv_attr {
+                            $attrs = new java.util.HashMap();
+                            $attrs.put($kv1.keyval.get(0), $kv1.keyval.get(1));
+                        }
+                        (
+                          ',' kv2=attribute_kv_attr {
+                                $attrs.put($kv2.keyval.get(0), $kv2.keyval.get(1));
+                              }
+                        )*
+                        ;
+
+attribute_kv_attr      returns [ArrayList keyval] :
+                        attribute_name_attr '=' attribute_value_attr {
+                          $keyval.add($attribute_name_attr.text);
+                          $keyval.add($attribute_value_attr.text);
+                        }
+                        ;
+attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ;
+attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ;
 
 attribute: 'X-OCCI-Attribute' ':' attributes_attr ;
 
