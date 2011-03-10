@@ -4,6 +4,18 @@ options {
   language = Java;
 }
 
+/*
+  e.g.
+  Category: storage;
+    scheme="http://schemas.ogf.org/occi/infrastructure#";
+    class="kind";
+    title="Storage Resource";
+    rel="http://schemas.ogf.org/occi/core#resource";
+    location=/storage/;
+    attributes="occi.storage.size occi.storage.state";
+    actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize"
+*/
+
 category               returns [java.util.ArrayList cats] :
                          'Category' ':'
                          category_values{
@@ -65,7 +77,15 @@ category               returns [java.util.ArrayList cats] :
 	klass_attr           returns [String value] :
 	                       ';' 'class' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+
+	                         String klass = $QUOTED_VALUE.text;
+                           klass = klass.substring(1, klass.length()-1);
+
+	                         if(!(klass.equals("kind") || klass.equals("mixin") || klass.equals("action"))){
+	                           System.out.println("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
+	                           //throw new Exception("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
+	                         }
+	                         $value = klass;
 	                       }
 	                       ;
 
