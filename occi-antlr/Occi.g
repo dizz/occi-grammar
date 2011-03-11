@@ -14,6 +14,25 @@ options {
   package occi.lexpar;
 }
 
+headers                returns [HashMap values] :
+                         (category | link | attribute | location)*
+                         {
+                           $values = new HashMap();
+
+                           if($category.cats != null)
+                             $values.put("occi.categories", $category.cats);
+
+                           if($link.link != null)
+                             $values.put("occi.links", $link.link);
+
+                           if($attribute.attrs != null)
+                             $values.put("occi.attributes", $attribute.attrs);
+
+                           if($location.urls != null)
+                             $values.put("occi.locations", $location.urls);
+                         }
+                         ;
+
 /*
   e.g.
   Category: storage; \
@@ -273,19 +292,19 @@ location               returns [ArrayList urls] :
                          ;
 
 location_values        returns [ArrayList urls]:
-	                       u1=URI {
+	                       u1=URL {
 	                         $urls = new ArrayList();
 	                         $urls.add($u1.text);
 	                       }
 	                       (
 	                         ','
-	                         u2=URI{
+	                         u2=URL{
 	                           $urls.add($u2.text);
 	                         }
 	                       )*
 	                       ;
 
-URI           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
+URL           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
 DIGITS        : ('0'..'9')* ;
 QUOTE         : '"' | '\'' ;
 TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_')* ;
