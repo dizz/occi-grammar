@@ -2,6 +2,18 @@ grammar CategoryLinkAttr;
 
 headers : (category | link | attribute | location)* ;
 
+/*
+  e.g.
+  Category: storage; \
+    scheme="http://schemas.ogf.org/occi/infrastructure#"; \
+    class="kind"; \
+    title="Storage Resource"; \
+    rel="http://schemas.ogf.org/occi/core#resource"; \
+    location=/storage/; \
+    attributes="occi.storage.size occi.storage.state"; \
+    actions="http://schemas.ogf.org/occi/infrastructure/storage/action#resize"
+*/
+
 category: 'Category' ':' category_values;
 	category_values: category_value (',' category_value)*;
 	category_value: term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?;
@@ -35,7 +47,25 @@ link: 'Link' ':' link_values;
 	     attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ; /* e.g. com.example.drive0.interface */
 	     attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ; /* e.g. "ide0" or 12 or 12.232 */
 
+/*
+e.g.
+  X-OCCI-Attribute: \
+    occi.compute.architechture="x86_64", \
+    occi.compute.cores=2, \
+    occi.compute.hostname="testserver", \
+    occi.compute.speed=2.66, \
+    occi.compute.memory=3.0, \
+    occi.compute.state="active"
+*/
+
 attribute: 'X-OCCI-Attribute' ':' attributes_attr ;
+
+/*
+e.g.
+  X-OCCI-Location: \
+    http://example.com/compute/123, \
+    http://example.com/compute/456
+*/
 
 location: 'X-OCCI-Location' ':' location_values;
 location_values : URL (',' URL)*;
