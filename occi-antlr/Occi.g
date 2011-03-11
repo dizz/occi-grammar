@@ -16,25 +16,25 @@ options {
 
 @members{
 
-  static String occi_categories = "occi.categories";
-  static String occi_links = "occi.links";
-  static String occi_attributes = "occi.attributes";
-  static String occi_locations = "occi.locations";
-  static String occi_core_term = "occi.core.term";
-  static String occi_core_scheme = "occi.core.scheme";
-  static String occi_core_class = "occi.core.class";
-  static String occi_core_class_kind = "kind";
-  static String occi_core_class_mixin = "mixin";
-  static String occi_core_class_action = "action";
-  static String occi_core_title = "occi.core.title";
-  static String occi_core_rel = "occi.core.rel";
-  static String occi_core_location = "occi.core.location";
-  static String occi_core_attributes = "occi.core.attributes";
-  static String occi_core_actions = "occi.core.actions";
-  static String occi_core_target = "occi.core.target";
-  static String occi_core_actionterm = "occi.core.actionterm";
-  static String occi_core_self = "occi.core.self";
-  static String occi_core_category = "occi.core.category";
+  static String occi_categories         = "occi.categories";
+  static String occi_links              = "occi.links";
+  static String occi_attributes         = "occi.attributes";
+  static String occi_locations          = "occi.locations";
+  static String occi_core_term          = "occi.core.term";
+  static String occi_core_scheme        = "occi.core.scheme";
+  static String occi_core_class         = "occi.core.class";
+  static String occi_core_class_kind    = "kind";
+  static String occi_core_class_mixin   = "mixin";
+  static String occi_core_class_action  = "action";
+  static String occi_core_title         = "occi.core.title";
+  static String occi_core_rel           = "occi.core.rel";
+  static String occi_core_location      = "occi.core.location";
+  static String occi_core_attributes    = "occi.core.attributes";
+  static String occi_core_actions       = "occi.core.actions";
+  static String occi_core_target        = "occi.core.target";
+  static String occi_core_actionterm    = "occi.core.actionterm";
+  static String occi_core_self          = "occi.core.self";
+  static String occi_core_category      = "occi.core.category";
 
   public static OcciParser getParser(String occiHeader) throws Exception {
 
