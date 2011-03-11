@@ -1,4 +1,4 @@
-grammar CategoryLinkAttr;
+grammar Occi;
 
 headers : (category | link | attribute | location)* ;
 
