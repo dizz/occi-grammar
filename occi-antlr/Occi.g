@@ -1,4 +1,4 @@
-grammar CategoryLinkAttr;
+grammar Occi;
 
 options {
   language = Java;
