@@ -36,17 +36,30 @@ options {
   static String occi_core_self          = "occi.core.self";
   static String occi_core_category      = "occi.core.category";
 
+  private String last_error = "";
+
   public static OcciParser getParser(String occiHeader) throws Exception {
 
     CharStream stream = new ANTLRStringStream(occiHeader);
-    OcciLexer lexer = new OcciLexer(stream);
-    CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-    OcciParser parser = new OcciParser(tokenStream);
-
-    if(parser.getNumberOfSyntaxErrors() > 0)
-      throw new Exception("Errors (" + parser.getNumberOfSyntaxErrors() + ") in parsing the input string");
+	  OcciLexer lexer = new OcciLexer(stream);
+	  CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+	  OcciParser parser = new OcciParser(tokenStream);
 
     return parser;
+  }
+
+  public String getLastError(){
+    return last_error;
+  }
+}
+
+@rulecatch{
+  catch(RecognitionException rex) {
+
+    last_error = getErrorHeader(rex) + " " + getErrorMessage(rex, OcciParser.tokenNames);
+    //System.out.println("Parser error: " + last_error);
+
+    throw new OcciParserException(last_error);
   }
 }
 
@@ -162,7 +175,6 @@ title_attr             returns [String value] :
 	                       }
 	                       ;
 
-
 //this value can be passed on to the uri rule in Location for validation
 rel_attr               returns [String value] :
 	                       ';' 'rel' '='
@@ -180,7 +192,6 @@ location_attr          returns [String value] :
 	                       }
 	                       ;
 
-
 //these value once extracted can be passed on to the attributes_attr rule
 c_attributes_attr      returns [String value] :
 	                       ';' 'attributes' '='
@@ -188,7 +199,6 @@ c_attributes_attr      returns [String value] :
 	                         $value = $QUOTED_VALUE.text;
 	                       }
 	                       ;
-
 
 //this value can be passed on to the uri rule in Location for validation
 actions_attr           returns [String value] :
@@ -300,7 +310,7 @@ attribute_kv_attr      returns [ArrayList keyval] :
                          }
                          ;
 
-attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ;
+attribute_name_attr    : TERM_VALUE;// ('.' TERM_VALUE)* ;
 attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ;
 
 /*
@@ -348,7 +358,7 @@ location_values        returns [ArrayList urls]:
 URL           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
 DIGITS        : ('0'..'9')* ;
 QUOTE         : '"' | '\'' ;
-TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_')* ;
+TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_' | '.')* ;
 TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-')* ;
 QUOTED_VALUE  : QUOTE ( options {greedy=false;} : . )* QUOTE ;
 
