@@ -51,6 +51,12 @@ options {
   public String getLastError(){
     return last_error;
   }
+
+  private String removeQuotes(String cleanMe){
+    if((cleanMe.charAt(0) == '"' && cleanMe.charAt(cleanMe.length()-1) == '"') || (cleanMe.charAt(0) == '\'' && cleanMe.charAt(cleanMe.length()-1)  == '\'' ) )
+      return cleanMe.substring(1, cleanMe.length()-1);
+    return cleanMe;
+  }
 }
 
 @rulecatch{
@@ -148,7 +154,7 @@ term_attr              returns [String value] :
 scheme_attr            returns [String value] :
 	                       ';' 'scheme' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+	                         $value = removeQuotes($QUOTED_VALUE.text);
 	                       }
 	                       ;
 
@@ -156,13 +162,12 @@ klass_attr             returns [String value] :
 	                       ';' 'class' '='
 	                       QUOTED_VALUE{
 
-	                         String klass = $QUOTED_VALUE.text;
-                           klass = klass.substring(1, klass.length()-1);
+	                         String klass = removeQuotes($QUOTED_VALUE.text);
 
 	                         if(!(klass.equals(occi_core_class_kind) || klass.equals(occi_core_class_mixin) ||
 	                               klass.equals(occi_core_class_action))){
 	                           System.out.println("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
-	                           //throw new Exception("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
+	                           //throw new OcciParserException("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
 	                         }
 	                         $value = klass;
 	                       }
@@ -171,7 +176,7 @@ klass_attr             returns [String value] :
 title_attr             returns [String value] :
 	                       ';' 'title' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+	                         $value = removeQuotes($QUOTED_VALUE.text);
 	                       }
 	                       ;
 
@@ -179,7 +184,7 @@ title_attr             returns [String value] :
 rel_attr               returns [String value] :
 	                       ';' 'rel' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+	                         $value = removeQuotes($QUOTED_VALUE.text);
 	                       }
 	                       ;
 
@@ -196,7 +201,7 @@ location_attr          returns [String value] :
 c_attributes_attr      returns [String value] :
 	                       ';' 'attributes' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+	                         $value = removeQuotes($QUOTED_VALUE.text);
 	                       }
 	                       ;
 
@@ -204,7 +209,7 @@ c_attributes_attr      returns [String value] :
 actions_attr           returns [String value] :
 	                       ';' 'actions' '='
 	                       QUOTED_VALUE{
-	                         $value = $QUOTED_VALUE.text;
+	                         $value = removeQuotes($QUOTED_VALUE.text);
 	                       }
 	                       ;
 
@@ -273,14 +278,14 @@ target_attr            returns [ArrayList targetAndTerm] :
 self_attr              returns [String value] :
                          ';' 'self' '='
                          QUOTED_VALUE{
-                           $value = $QUOTED_VALUE.text;
+                           $value = removeQuotes($QUOTED_VALUE.text);
                          }
                          ;
 
 category_attr          returns [String value] :
                          ';' 'category' '='
                          QUOTED_VALUE {
-                           $value = $QUOTED_VALUE.text;
+                           $value = removeQuotes($QUOTED_VALUE.text);
                          }
                          ;
 
@@ -312,7 +317,7 @@ attribute_kv_attr      returns [ArrayList keyval] :
 
 //See https://github.com/dizz/occi-grammar/issues#issue/3
 attribute_name_attr    : TERM_VALUE;// ('.' TERM_VALUE)* ;
-attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ;
+attribute_value_attr   : QUOTED_VALUE | DIGITS | FLOAT ;
 
 /*
 e.g.
@@ -358,9 +363,9 @@ location_values        returns [ArrayList urls]:
 
 URL           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' )*;
 DIGITS        : ('0'..'9')* ;
+FLOAT         : ('0'..'9' | '.')* ;
 QUOTE         : '"' | '\'' ;
 TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_' | '.')* ;
 TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-')* ;
 QUOTED_VALUE  : QUOTE ( options {greedy=false;} : . )* QUOTE ;
-
 WS  :   ( ' ' | '\t' | '\r' | '\n' ) {$channel=HIDDEN;} ;
