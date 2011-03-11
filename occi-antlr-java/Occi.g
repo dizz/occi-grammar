@@ -310,6 +310,7 @@ attribute_kv_attr      returns [ArrayList keyval] :
                          }
                          ;
 
+//See https://github.com/dizz/occi-grammar/issues#issue/3
 attribute_name_attr    : TERM_VALUE;// ('.' TERM_VALUE)* ;
 attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ;
 
