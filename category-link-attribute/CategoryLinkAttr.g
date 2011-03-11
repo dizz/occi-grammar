@@ -1,5 +1,7 @@
 grammar CategoryLinkAttr;
 
+headers : (category | link | attribute | location)* ;
+
 category: 'Category' ':' category_values;
 	category_values: category_value (',' category_value)*;
 	category_value: term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?;
