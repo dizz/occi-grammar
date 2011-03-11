@@ -16,10 +16,10 @@ options {
 
 @members{
 
-  static String occi_categories         = "occi.categories";
-  static String occi_links              = "occi.links";
-  static String occi_attributes         = "occi.attributes";
-  static String occi_locations          = "occi.locations";
+  public static String occi_categories  = "occi.categories";
+  public static String occi_links       = "occi.links";
+  public static String occi_attributes  = "occi.attributes";
+  public static String occi_locations   = "occi.locations";
   static String occi_core_term          = "occi.core.term";
   static String occi_core_scheme        = "occi.core.scheme";
   static String occi_core_class         = "occi.core.class";
