@@ -53,8 +53,10 @@ options {
   }
 
   private String removeQuotes(String cleanMe){
-    if((cleanMe.charAt(0) == '"' && cleanMe.charAt(cleanMe.length()-1) == '"') || (cleanMe.charAt(0) == '\'' && cleanMe.charAt(cleanMe.length()-1)  == '\'' ) )
-      return cleanMe.substring(1, cleanMe.length()-1);
+
+    if(cleanMe.matches("^(\"|').*(\"|')$"))
+      cleanMe = cleanMe.substring(1, cleanMe.length()-1);
+
     return cleanMe;
   }
 }
@@ -311,7 +313,7 @@ attribute_kv_attr      returns [ArrayList keyval] :
                          attribute_name_attr '=' attribute_value_attr {
                            $keyval = new ArrayList();
                            $keyval.add($attribute_name_attr.text);
-                           $keyval.add($attribute_value_attr.text);
+                           $keyval.add(removeQuotes($attribute_value_attr.text));
                          }
                          ;
 
