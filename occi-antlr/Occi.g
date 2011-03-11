@@ -14,22 +14,46 @@ options {
   package occi.lexpar;
 }
 
+@members{
+
+  static String occi_categories = "occi.categories";
+  static String occi_links = "occi.links";
+  static String occi_attributes = "occi.attributes";
+  static String occi_locations = "occi.locations";
+  static String occi_core_term = "occi.core.term";
+  static String occi_core_scheme = "occi.core.scheme";
+  static String occi_core_class = "occi.core.class";
+  static String occi_core_class_kind = "kind";
+  static String occi_core_class_mixin = "mixin";
+  static String occi_core_class_action = "action";
+  static String occi_core_title = "occi.core.title";
+  static String occi_core_rel = "occi.core.rel";
+  static String occi_core_location = "occi.core.location";
+  static String occi_core_attributes = "occi.core.attributes";
+  static String occi_core_actions = "occi.core.actions";
+  static String occi_core_target = "occi.core.target";
+  static String occi_core_actionterm = "occi.core.actionterm";
+  static String occi_core_self = "occi.core.self";
+  static String occi_core_category = "occi.core.category";
+
+}
+
 headers                returns [HashMap values] :
                          (category | link | attribute | location)*
                          {
                            $values = new HashMap();
 
                            if($category.cats != null)
-                             $values.put("occi.categories", $category.cats);
+                             $values.put(occi_categories, $category.cats);
 
                            if($link.link != null)
-                             $values.put("occi.links", $link.link);
+                             $values.put(occi_links, $link.link);
 
                            if($attribute.attrs != null)
-                             $values.put("occi.attributes", $attribute.attrs);
+                             $values.put(occi_attributes, $attribute.attrs);
 
                            if($location.urls != null)
-                             $values.put("occi.locations", $location.urls);
+                             $values.put(occi_locations, $location.urls);
                          }
                          ;
 
@@ -68,24 +92,24 @@ category_value         returns [HashMap cat] :
 	                       term_attr scheme_attr klass_attr title_attr? rel_attr? location_attr? c_attributes_attr? actions_attr?{
 	                         $cat = new HashMap();
 
-	                         $cat.put("occi.core.term", $term_attr.value);
-	                         $cat.put("occi.core.scheme", $scheme_attr.value);
-	                         $cat.put("occi.core.class", $klass_attr.value);
+	                         $cat.put(occi_core_term, $term_attr.value);
+	                         $cat.put(occi_core_scheme, $scheme_attr.value);
+	                         $cat.put(occi_core_class, $klass_attr.value);
 
                            if($title_attr.value !=null)
-                              $cat.put("occi.core.title", $title_attr.value);
+                              $cat.put(occi_core_title, $title_attr.value);
 
                            if($rel_attr.value != null)
-                              $cat.put("occi.core.rel", $rel_attr.value);
+                              $cat.put(occi_core_rel, $rel_attr.value);
 
                            if($location_attr.value != null)
-                              $cat.put("occi.core.location", $location_attr.value);
+                              $cat.put(occi_core_location, $location_attr.value);
 
                            if($c_attributes_attr.value != null)
-                              $cat.put("occi.core.attributes", $c_attributes_attr.value);
+                              $cat.put(occi_core_attributes, $c_attributes_attr.value);
 
                            if($actions_attr.value != null)
-                              $cat.put("occi.core.actions", $actions_attr.value);
+                              $cat.put(occi_core_actions, $actions_attr.value);
 	                       }
                          ;
 
@@ -110,7 +134,8 @@ klass_attr             returns [String value] :
 	                         String klass = $QUOTED_VALUE.text;
                            klass = klass.substring(1, klass.length()-1);
 
-	                         if(!(klass.equals("kind") || klass.equals("mixin") || klass.equals("action"))){
+	                         if(!(klass.equals(occi_core_class_kind) || klass.equals(occi_core_class_mixin) ||
+	                               klass.equals(occi_core_class_action))){
 	                           System.out.println("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
 	                           //throw new Exception("the 'class' attribute's value can only be ['kind', 'mixin', 'action']");
 	                         }
@@ -125,6 +150,7 @@ title_attr             returns [String value] :
 	                       }
 	                       ;
 
+
 //this value can be passed on to the uri rule in Location for validation
 rel_attr               returns [String value] :
 	                       ';' 'rel' '='
@@ -132,6 +158,7 @@ rel_attr               returns [String value] :
 	                         $value = $QUOTED_VALUE.text;
 	                       }
 	                       ;
+
 
 //this value can be passed on to the uri rule in Location for validation
 location_attr          returns [String value] :
@@ -141,6 +168,7 @@ location_attr          returns [String value] :
 	                       }
 	                       ;
 
+
 //these value once extracted can be passed on to the attributes_attr rule
 c_attributes_attr      returns [String value] :
 	                       ';' 'attributes' '='
@@ -148,6 +176,7 @@ c_attributes_attr      returns [String value] :
 	                         $value = $QUOTED_VALUE.text;
 	                       }
 	                       ;
+
 
 //this value can be passed on to the uri rule in Location for validation
 actions_attr           returns [String value] :
@@ -190,17 +219,17 @@ link_value             returns [HashMap linkAttrs] :
                          {
                            $linkAttrs = new HashMap();
 
-                           $linkAttrs.put("occi.core.target", $target_attr.targetAndTerm.get(0));
+                           $linkAttrs.put(occi_core_target, $target_attr.targetAndTerm.get(0));
                            if($target_attr.targetAndTerm.size() == 2)
-                             $linkAttrs.put("occi.core.actionterm", $target_attr.targetAndTerm.get(1));
+                             $linkAttrs.put(occi_core_actionterm, $target_attr.targetAndTerm.get(1));
 
-                           $linkAttrs.put("occi.core.rel", $rel_attr.value);
+                           $linkAttrs.put(occi_core_rel, $rel_attr.value);
 
                            if($self_attr.value != null)
-                             $linkAttrs.put("occi.core.self", $self_attr.value);
+                             $linkAttrs.put(occi_core_self, $self_attr.value);
 
                            if($category_attr.value != null)
-                             $linkAttrs.put("occi.core.category", $category_attr.value);
+                             $linkAttrs.put(occi_core_category, $category_attr.value);
 
                            if($attribute_attr.attr != null)
                              $linkAttrs.putAll($attribute_attr.attr);
