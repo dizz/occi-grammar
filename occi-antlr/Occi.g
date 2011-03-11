@@ -35,7 +35,6 @@ options {
   static String occi_core_actionterm = "occi.core.actionterm";
   static String occi_core_self = "occi.core.self";
   static String occi_core_category = "occi.core.category";
-
 }
 
 headers                returns [HashMap values] :
