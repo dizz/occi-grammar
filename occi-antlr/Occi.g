@@ -35,6 +35,19 @@ options {
   static String occi_core_actionterm = "occi.core.actionterm";
   static String occi_core_self = "occi.core.self";
   static String occi_core_category = "occi.core.category";
+
+  public static OcciParser getParser(String occiHeader) throws Exception {
+
+    CharStream stream = new ANTLRStringStream(occiHeader);
+    OcciLexer lexer = new OcciLexer(stream);
+    CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+    OcciParser parser = new OcciParser(tokenStream);
+
+    if(parser.getNumberOfSyntaxErrors() > 0)
+      throw new Exception("Errors (" + parser.getNumberOfSyntaxErrors() + ") in parsing the input string");
+
+    return parser;
+  }
 }
 
 headers                returns [HashMap values] :
