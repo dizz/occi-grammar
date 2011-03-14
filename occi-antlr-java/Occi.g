@@ -38,6 +38,8 @@ options {
 
   private String last_error = "";
 
+  private HashMap allheaders = new HashMap();
+
   public static OcciParser getParser(String occiHeader) throws Exception {
 
     CharStream stream = new ANTLRStringStream(occiHeader);
@@ -71,22 +73,25 @@ options {
   }
 }
 
-headers                returns [HashMap values] :
-                         (category | link | attribute | location)*
+headers                returns [HashMap value] :
                          {
-                           $values = new HashMap();
-
-                           if($category.cats != null)
-                             $values.put(occi_categories, $category.cats);
-
-                           if($link.link != null)
-                             $values.put(occi_links, $link.link);
-
-                           if($attribute.attrs != null)
-                             $values.put(occi_attributes, $attribute.attrs);
-
-                           if($location.urls != null)
-                             $values.put(occi_locations, $location.urls);
+                           ArrayList catList = new ArrayList();
+                           ArrayList linkList = new ArrayList();
+                           ArrayList attrList = new ArrayList();
+                           ArrayList locList = new ArrayList();
+                         }
+                         (
+                           category  { if($category.cats != null) catList.add($category.cats); } |
+                           link      { if($link.link != null) linkList.add($link.link); } |
+                           attribute { if($attribute.attrs != null) attrList.add($attribute.attrs); } |
+                           location  { if($location.urls != null) locList.add($location.urls); }
+                         )*
+                         {
+                           allheaders.put(occi_categories, catList);
+                           allheaders.put(occi_links, linkList);
+                           allheaders.put(occi_attributes, attrList);
+                           allheaders.put(occi_locations, locList);
+                           $value = allheaders;
                          }
                          ;
 
