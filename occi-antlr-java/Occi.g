@@ -368,6 +368,6 @@ DIGITS        : ('0'..'9')* ;
 FLOAT         : ('0'..'9' | '.')* ;
 QUOTE         : '"' | '\'' ;
 TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_' | '.')* ;
-TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-')* ;
+TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-' | '_')* ;
 QUOTED_VALUE  : QUOTE ( options {greedy=false;} : . )* QUOTE ;
 WS  :   ( ' ' | '\t' | '\r' | '\n' ) {$channel=HIDDEN;} ;
