@@ -38,7 +38,7 @@ options {
 
   private String last_error = "";
 
-  private HashMap allheaders = new HashMap();
+  //private HashMap allheaders = new HashMap();
 
   public static OcciParser getParser(String occiHeader) throws Exception {
 
@@ -75,6 +75,7 @@ options {
 
 headers                returns [HashMap value] :
                          {
+                           $value = new HashMap();
                            ArrayList catList = new ArrayList();
                            ArrayList linkList = new ArrayList();
                            ArrayList attrList = new ArrayList();
@@ -87,11 +88,11 @@ headers                returns [HashMap value] :
                            location  { if($location.urls != null) locList.add($location.urls); }
                          )*
                          {
-                           allheaders.put(occi_categories, catList);
-                           allheaders.put(occi_links, linkList);
-                           allheaders.put(occi_attributes, attrList);
-                           allheaders.put(occi_locations, locList);
-                           $value = allheaders;
+                           $value.put(occi_categories, catList);
+                           $value.put(occi_links, linkList);
+                           $value.put(occi_attributes, attrList);
+                           $value.put(occi_locations, locList);
+                           //$value = allheaders;
                          }
                          ;
 
