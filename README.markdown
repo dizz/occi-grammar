@@ -15,6 +15,9 @@ There are two grammars currently defined:
 
 There are a number of rules that are present within the OCCI grammar that can be reused in order to validate certain supplied values. This would describe a second pass parsing phase. In the case that an implementer would like to validate a URI value then they can do so by using [this URI grammar](https://github.com/dizz/antlr-url-grammar).
 
+# Generating the Lexer and Parser:
+The (ANTLR site has all)[http://www.antlr.org/wiki/pages/viewpage.action?pageId=729] the documentation you'll need for this. If you are an eclipse user, you will find that the (ANTLR IDE eclipse plugin)[http://antlrv3ide.sourceforge.net/] is very useful. Otherwise, (ANTLRworks)[http://www.antlr.org/works/index.html] is another good standalone tool.
+
 # License:
 This is released under a 3-clause BSD license and the work is sponsored by the [SLA@SOI EU FP7 project](http://www.sla-at-soi.eu).
 
