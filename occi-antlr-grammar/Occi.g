@@ -1,5 +1,9 @@
 grammar Occi;
 
+options {
+  language = Ruby;
+}
+
 headers : (category | link | attribute | location)* ;
 
 /*
@@ -44,8 +48,8 @@ link: 'Link' ':' link_values;
 	attribute_attr         : ';' attributes_attr ; /* e.g. com.example.drive0.interface="ide0", com.example.drive1.interface="ide1" */
 	 attributes_attr        : attribute_kv_attr (',' attribute_kv_attr)* ; /* e.g. com.example.drive0.interface="ide0", com.example.drive1.interface="ide1" */
 	   attribute_kv_attr      : attribute_name_attr '=' attribute_value_attr; /* e.g. com.example.drive0.interface="ide0" */
-	     attribute_name_attr    : TERM_VALUE ('.' TERM_VALUE)* ; /* e.g. com.example.drive0.interface */
-	     attribute_value_attr   : QUOTED_VALUE | DIGITS | (DIGITS '.' DIGITS) ; /* e.g. "ide0" or 12 or 12.232 */
+	     attribute_name_attr    : TERM_VALUE;// ('.' TERM_VALUE)* ; /* e.g. com.example.drive0.interface */
+	     attribute_value_attr   : QUOTED_VALUE | DIGITS | FLOAT ; /* e.g. "ide0" or 12 or 12.232 */
 
 /*
 e.g.
@@ -72,9 +76,10 @@ location_values : URL (',' URL)*;
 
 URL           : ( 'http://' | 'https://' )( 'a'..'z' | 'A'..'Z' | '0'..'9' | '@' | ':' | '%' | '_' | '\\' | '+' | '.' | '~' | '#' | '?' | '&' | '/' | '=' | '-' )*;
 DIGITS        : ('0'..'9')* ;
+FLOAT         : ('0'..'9' | '.')* ;
 QUOTE         : '"' | '\'' ;
-TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_')* ;
-TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-')* ;
+TERM_VALUE    : ('a'..'z' | 'A..Z' | '0'..'9' | '-' | '_' | '.')* ;
+TARGET_VALUE  : ('a'..'z' | 'A'..'Z' | '0'..'9' | '/' | '-' | '_')* ;
 QUOTED_VALUE  : QUOTE ( options {greedy=false;} : . )* QUOTE ;
 
 WS  :   ( ' ' | '\t' | '\r' | '\n' ) {$channel=HIDDEN;} ;
