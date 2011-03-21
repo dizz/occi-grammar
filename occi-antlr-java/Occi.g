@@ -8,6 +8,7 @@ options {
     package occi.lexpar;
     import java.util.HashMap;
     import java.util.ArrayList;
+    import java.math.BigDecimal;
 }
 
 @lexer::header {
@@ -92,7 +93,6 @@ headers                returns [HashMap value] :
                            $value.put(occi_links, linkList);
                            $value.put(occi_attributes, attrList);
                            $value.put(occi_locations, locList);
-                           //$value = allheaders;
                          }
                          ;
 
@@ -319,13 +319,24 @@ attribute_kv_attr      returns [ArrayList keyval] :
                          attribute_name_attr '=' attribute_value_attr {
                            $keyval = new ArrayList();
                            $keyval.add($attribute_name_attr.text);
-                           $keyval.add(removeQuotes($attribute_value_attr.text));
+                           $keyval.add($attribute_value_attr.value);
                          }
                          ;
 
 //See https://github.com/dizz/occi-grammar/issues#issue/3
 attribute_name_attr    : TERM_VALUE;// ('.' TERM_VALUE)* ;
-attribute_value_attr   : QUOTED_VALUE | DIGITS | FLOAT ;
+
+attribute_value_attr   returns [Object value] :
+                        QUOTED_VALUE {
+                          $value = removeQuotes($QUOTED_VALUE.text);
+                        }
+                        | DIGITS {
+                          $value = Integer.parseInt(removeQuotes($DIGITS.text));
+                        }
+                        | FLOAT {
+                          $value = new BigDecimal(removeQuotes($FLOAT.text));
+                        }
+                        ;
 
 /*
 e.g.
