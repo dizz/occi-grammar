@@ -5,6 +5,19 @@ import java.util.HashMap;
 
 import occi.lexpar.OcciParser;
 
+/*
+
+Parses OCCI text renderings of:
+ - Link, 
+ - Category, 
+ - Attribute, 
+ - Location 
+ - Combination of all
+
+Extracts the values from the renderings and prints them to standard out.
+
+*/
+
 public class OcciChomper {
 
 	public static void main(String[] args) {

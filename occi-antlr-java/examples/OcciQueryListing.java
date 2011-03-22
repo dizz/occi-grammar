@@ -4,6 +4,13 @@ import java.util.HashMap;
 
 import occi.lexpar.OcciParser;
 
+/*
+
+Parses the result of an OCCI Query Interface response.
+Extracts the values from the response and prints them to standard out.
+
+*/
+
 public class OcciQueryListing {
 
 	public static String listing =
