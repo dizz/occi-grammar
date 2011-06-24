@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright (c) 2008-2011, Intel Performance Learning Solutions Ltd.
 All rights reserved.
 
@@ -36,6 +36,7 @@ options {
     import java.util.HashMap;
     import java.util.ArrayList;
     import java.math.BigDecimal;
+    import java.math.BigInteger;
 }
 
 @lexer::header {
@@ -68,12 +69,32 @@ options {
 
   //private HashMap allheaders = new HashMap();
 
+  /*private IErrorReporter errorReporter = null;
+
+  protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow){
+    System.out.println("recoverFromMismatchedToken");
+    return null;
+  }
+
+  public void setErrorReporter(IErrorReporter errorReporter) {
+    this.errorReporter = errorReporter;
+  }
+
+  public void emitErrorMessage(String msg) {
+    errorReporter.reportError(msg);
+  }*/
+
   public static OcciParser getParser(String occiHeader) throws Exception {
+
+ //   IErrorReporter errorReporter = new ErrorReporter();
 
     CharStream stream = new ANTLRStringStream(occiHeader);
 	  OcciLexer lexer = new OcciLexer(stream);
+//	  lexer.setErrorReporter(errorReporter);
+
 	  CommonTokenStream tokenStream = new CommonTokenStream(lexer);
 	  OcciParser parser = new OcciParser(tokenStream);
+	  //parser.setErrorReporter(errorReporter);
 
     return parser;
   }
@@ -89,6 +110,14 @@ options {
 
     return cleanMe;
   }
+
+//  public void emitErrorMessage(String message){
+//    System.out.println("A emitErrorMessage occured");
+//  }
+
+//  public void displayRecognitionError(String[] tokenNames, RecognitionException e) {
+//    System.out.println("A displayRecognitionError occured");
+//  }
 }
 
 @rulecatch{
@@ -358,7 +387,10 @@ attribute_value_attr   returns [Object value] :
                           $value = removeQuotes($QUOTED_VALUE.text);
                         }
                         | DIGITS {
-                          $value = Integer.parseInt(removeQuotes($DIGITS.text));
+                          //$value = BigInteger.
+                          BigInteger x = new BigInteger(removeQuotes($DIGITS.text));
+                          $value = x;
+                          //$value = Integer.parseInt(removeQuotes($DIGITS.text));
                         }
                         | FLOAT {
                           $value = new BigDecimal(removeQuotes($FLOAT.text));
