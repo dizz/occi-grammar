@@ -387,10 +387,7 @@ attribute_value_attr   returns [Object value] :
                           $value = removeQuotes($QUOTED_VALUE.text);
                         }
                         | DIGITS {
-                          //$value = BigInteger.
-                          BigInteger x = new BigInteger(removeQuotes($DIGITS.text));
-                          $value = x;
-                          //$value = Integer.parseInt(removeQuotes($DIGITS.text));
+                          $value = new BigInteger(removeQuotes($DIGITS.text));
                         }
                         | FLOAT {
                           $value = new BigDecimal(removeQuotes($FLOAT.text));
