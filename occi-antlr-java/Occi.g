@@ -126,7 +126,7 @@ options {
     last_error = getErrorHeader(rex) + " " + getErrorMessage(rex, OcciParser.tokenNames);
     //System.out.println("Parser error: " + last_error);
 
-    throw new OcciParserException(last_error);
+    throw new RuntimeException(last_error);
   }
 }
 
